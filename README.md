@@ -1,58 +1,127 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# LaunchCraft
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Server-Driven UI backend for building and publishing websites. Built with Laravel 13 + MongoDB + Sanctum.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **PHP 8.4** (CLI)
+- **Laravel 13**
+- **MongoDB 7** via `mongodb/laravel-mongodb` ^5.8
+- **Laravel Sanctum** ^4.3 (API token auth)
+- **Docker** (PHP + MongoDB containers)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Quick Start
 
 ```bash
-composer require laravel/boost --dev
+# Clone and start containers
+git clone https://github.com/IbramMamdouh0/LaunchCraft.git
+cd LaunchCraft
+docker compose up -d
 
-php artisan boost:install
+# Install dependencies
+docker exec laravel_app composer install
+docker exec laravel_app php artisan key:generate
+
+# Seed demo data (optional)
+docker exec laravel_app php artisan db:seed --class=MobileTestSeeder
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## API Endpoints
 
-## Contributing
+All routes prefixed with `/api`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Auth
 
-## Code of Conduct
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/register` | Register new user |
+| POST | `/api/login` | Login, returns Bearer token |
+| POST | `/api/logout` | Revoke current token |
+| GET | `/api/user` | Get authenticated user |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Websites (auth required)
 
-## Security Vulnerabilities
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/websites` | List user's websites |
+| POST | `/api/websites` | Create website |
+| GET | `/api/websites/{id}` | Get website details |
+| PUT | `/api/websites/{id}` | Update website |
+| DELETE | `/api/websites/{id}` | Delete website |
+| PUT | `/api/websites/{id}/publish` | Publish website with theme & sections |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Mobile (auth required)
 
-## License
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/mobile/website` | Get authenticated user's published website (Flutter-ready) |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Media (auth required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/websites/{id}/media` | List media files |
+| POST | `/api/websites/{id}/media` | Upload file |
+| DELETE | `/api/websites/{id}/media/{mediaId}` | Delete media |
+
+## Mobile Endpoint Response
+
+`GET /api/mobile/website` returns:
+
+```json
+{
+  "website": {
+    "id": "...",
+    "name": "LaunchCraft Demo",
+    "domain": "demo.launchcraft.app",
+    "is_published": true
+  },
+  "theme": {
+    "primary_color": "#6366f1",
+    "secondary_color": "#ec4899",
+    "font_family": "Inter, sans-serif"
+  },
+  "sections": [
+    {
+      "type": "hero",
+      "sort_order": 0,
+      "data": { ... },
+      "style": { ... }
+    }
+  ]
+}
+```
+
+Designed for **Server-Driven UI** on Flutter — loop `sections` and render each by `type`.
+
+## Models
+
+All models use `$connection = 'mongodb'` and extend MongoDB Eloquent classes:
+
+- **User** — `hasMany(Website)`, `morphMany(PersonalAccessToken)`
+- **Website** — `belongsTo(User)`, `hasMany(Media)`, casts `theme`, `sections`, `pages` as arrays, `is_published` as boolean
+- **Media** — `belongsTo(Website)`
+- **PersonalAccessToken** — extends Sanctum's PAT with `DocumentModel` trait, `getKeyType()` returns `'string'` for MongoDB hex IDs
+
+## Testing
+
+```bash
+docker exec laravel_app php artisan test
+```
+
+Tests use SQLite in-memory for the default connection; MongoDB models bypass it via `$connection = 'mongodb'`. 35 tests cover auth, website CRUD, publish, mobile endpoint, and media.
+
+## CI/CD
+
+GitHub Actions runs tests on push/PR to `main`:
+- PHP 8.4 + MongoDB 7 service container
+- `mongodb` extension via pecl
+- Full test suite
+
+## Docker
+
+```yaml
+services:
+  app:   PHP 8.4 CLI + MongoDB extension, exposes port 8000
+  mongo: MongoDB 7, port 27017
+```
