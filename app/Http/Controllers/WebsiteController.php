@@ -80,8 +80,34 @@ class WebsiteController extends Controller
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        $website->update(['status' => 'published']);
+        $validated = $request->validate([
+            'theme.primary_color' => 'nullable|string|max:20',
+            'theme.secondary_color' => 'nullable|string|max:20',
+            'theme.font_family' => 'nullable|string|max:100',
+            'sections' => 'nullable|array',
+            'sections.*.type' => 'required_with:sections|string|max:50',
+            'sections.*.sort_order' => 'required_with:sections|integer|min:0',
+            'sections.*.data' => 'nullable|array',
+            'sections.*.style' => 'nullable|array',
+        ]);
 
-        return response()->json(['message' => 'Website published successfully.', 'website' => $website]);
+        $website->update([
+            'theme' => $validated['theme'] ?? $website->theme,
+            'sections' => $validated['sections'] ?? $website->sections,
+            'is_published' => true,
+            'status' => 'published',
+        ]);
+
+        return response()->json([
+            'message' => 'Website published successfully.',
+            'website' => [
+                'id' => $website->id,
+                'name' => $website->name,
+                'domain' => $website->domain,
+                'is_published' => true,
+            ],
+            'theme' => $website->theme,
+            'sections' => $website->sections,
+        ]);
     }
 }

@@ -2,13 +2,12 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MediaController;
-use App\Http\Controllers\MobileController;
+use App\Http\Controllers\MobileWebsiteController;
 use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/mobile/website', [MobileController::class, 'website']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
@@ -26,4 +25,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [MediaController::class, 'store']);
         Route::delete('/{medium}', [MediaController::class, 'destroy']);
     });
+
+    Route::get('/mobile/website', [MobileWebsiteController::class, 'show']);
 });

@@ -139,9 +139,24 @@ class WebsiteApiTest extends TestCase
         $website = Website::factory()->create([
             'user_id' => $user->id,
             'status' => 'draft',
+            'is_published' => false,
         ]);
 
-        $response = $this->actingAs($user)->putJson("/api/websites/{$website->id}/publish");
+        $response = $this->actingAs($user)->putJson("/api/websites/{$website->id}/publish", [
+            'theme' => [
+                'primary_color' => '#6366f1',
+                'secondary_color' => '#ec4899',
+                'font_family' => 'Inter, sans-serif',
+            ],
+            'sections' => [
+                [
+                    'type' => 'hero',
+                    'sort_order' => 0,
+                    'data' => ['headline' => 'Welcome'],
+                    'style' => ['background_color' => '#0f172a'],
+                ],
+            ],
+        ]);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -150,6 +165,7 @@ class WebsiteApiTest extends TestCase
 
         $website->refresh();
         $this->assertEquals('published', $website->status);
+        $this->assertTrue($website->is_published);
     }
 
     public function test_user_cannot_publish_another_users_website()

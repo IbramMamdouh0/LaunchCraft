@@ -15,17 +15,22 @@ class Website extends Model
     protected $fillable = [
         'user_id',
         'name',
+        'domain',
         'business_type',
         'template',
         'theme',
+        'sections',
         'status',
+        'is_published',
         'slug',
         'pages',
     ];
 
     protected $casts = [
         'theme' => 'array',
+        'sections' => 'array',
         'pages' => 'array',
+        'is_published' => 'boolean',
     ];
 
     public function user()
