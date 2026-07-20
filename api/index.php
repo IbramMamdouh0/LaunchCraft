@@ -40,7 +40,10 @@ try {
 
     $request = \Illuminate\Http\Request::capture();
     $response = $app->handleRequest($request);
-    $response->send();
+
+    if ($response instanceof \Symfony\Component\HttpFoundation\Response) {
+        $response->send();
+    }
 
 } catch (\Throwable $e) {
     if (!headers_sent()) {
