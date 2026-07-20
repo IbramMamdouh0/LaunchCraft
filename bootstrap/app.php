@@ -12,11 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withProviders([
-        Illuminate\View\ViewServiceProvider::class,
+        \Illuminate\View\ViewServiceProvider::class,
     ])
     ->booted(function (Application $app) {
         if (! $app->bound('view')) {
-            $app->register(Illuminate\View\ViewServiceProvider::class);
+            $app->register(\Illuminate\View\ViewServiceProvider::class);
         }
     })
     ->withMiddleware(function (Middleware $middleware): void {
