@@ -30,7 +30,7 @@ try {
     /** @var \Illuminate\Foundation\Application $app */
     $app = require __DIR__ . '/../bootstrap/app.php';
 
-    $app->useBootstrapPath('/tmp/bootstrap/cache');
+    $app->useBootstrapPath('/tmp/bootstrap');
 
     $app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
     $app->register(\Illuminate\View\ViewServiceProvider::class);
