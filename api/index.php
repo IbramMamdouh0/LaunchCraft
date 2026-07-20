@@ -1,5 +1,7 @@
 <?php
 
+$_SERVER['HTTP_ACCEPT'] = 'application/json';
+
 $tmpDirs = [
     '/tmp/storage/framework/views',
     '/tmp/storage/framework/sessions',
