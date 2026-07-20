@@ -24,12 +24,15 @@ try {
     $_ENV['APP_STORAGE'] = '/tmp/storage';
     $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
     $_ENV['LOG_CHANNEL'] = $_ENV['LOG_CHANNEL'] ?? 'stderr';
+    $_ENV['SESSION_DRIVER'] = $_ENV['SESSION_DRIVER'] ?? 'cookie';
+    $_ENV['CACHE_STORE'] = $_ENV['CACHE_STORE'] ?? 'array';
 
     require __DIR__ . '/../vendor/autoload.php';
 
     /** @var \Illuminate\Foundation\Application $app */
     $app = require __DIR__ . '/../bootstrap/app.php';
 
+    $app->useStoragePath('/tmp/storage');
     $app->useBootstrapPath('/tmp/bootstrap');
 
     $app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
