@@ -1,10 +1,8 @@
 <?php
 
-use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,14 +12,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withProviders([
-        AppServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
     ])
+    ->booted(function (Application $app) {
+        if (! $app->bound('view')) {
+            $app->register(Illuminate\View\ViewServiceProvider::class);
+        }
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => true,
-        );
+        $exceptions->shouldRenderJsonWhen(fn () => true);
     })->create();
