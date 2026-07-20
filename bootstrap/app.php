@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withProviders([
         AppServiceProvider::class,
+        Illuminate\View\ViewServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         //
