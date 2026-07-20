@@ -20,6 +20,15 @@ $_ENV['APP_STORAGE'] = '/tmp/storage';
 $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
 $_ENV['LOG_CHANNEL'] = $_ENV['LOG_CHANNEL'] ?? 'stderr';
 
+$cachedPackages = __DIR__ . '/../bootstrap/cache/packages.php';
+if (file_exists($cachedPackages)) {
+    @unlink($cachedPackages);
+}
+$cachedServices = __DIR__ . '/../bootstrap/cache/services.php';
+if (file_exists($cachedServices)) {
+    @unlink($cachedServices);
+}
+
 try {
     require __DIR__ . '/../public/index.php';
 } catch (Throwable $e) {
