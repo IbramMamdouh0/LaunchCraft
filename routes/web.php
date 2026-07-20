@@ -9,3 +9,7 @@ Route::get('/', function () {
         'version' => '1.0.0'
     ]);
 });
+
+Route::get('/ping', function () {
+    return response()->json(['status' => 'ok', 'message' => 'pong']);
+});
