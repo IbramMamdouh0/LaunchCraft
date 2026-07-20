@@ -25,16 +25,12 @@ try {
     $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
     $_ENV['LOG_CHANNEL'] = $_ENV['LOG_CHANNEL'] ?? 'stderr';
 
-    foreach (glob(__DIR__ . '/../bootstrap/cache/*.php') as $cacheFile) {
-        if (basename($cacheFile) !== '.gitignore' && basename($cacheFile) !== '.gitkeep') {
-            @unlink($cacheFile);
-        }
-    }
-
     require __DIR__ . '/../vendor/autoload.php';
 
     /** @var \Illuminate\Foundation\Application $app */
     $app = require __DIR__ . '/../bootstrap/app.php';
+
+    $app->useBootstrapPath('/tmp/bootstrap/cache');
 
     $app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
     $app->register(\Illuminate\View\ViewServiceProvider::class);
@@ -44,8 +40,10 @@ try {
     $response->send();
 
 } catch (\Throwable $e) {
-    http_response_code(500);
-    header('Content-Type: application/json');
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+    }
     echo json_encode([
         'status' => 'error',
         'message' => $e->getMessage(),
