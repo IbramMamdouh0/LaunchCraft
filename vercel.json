@@ -9,8 +9,12 @@
   },
   "routes": [
     {
+      "src": "/build/(.*)",
+      "dest": "/build/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/api/index.php" 
+      "dest": "/api/index.php"
     }
   ] 
 }
