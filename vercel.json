@@ -1,16 +1,10 @@
 {
   "outputDirectory": "public",
-  "builds": [
-    {
-      "src": "api/index.php",
-      "use": "vercel-php@0.7.3",
-      "config": {
-        "maxDuration": 60
-      }
+  "version": 2,
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.8.3"
     }
-  ],
-  "env": {
-    "VERCEL_PHP_VERSION": "8.2"
   },
   "routes": [
     {
