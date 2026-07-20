@@ -10,6 +10,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        if (! $this->app->bound('files')) {
+            $this->app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
+        }
+
         if (! $this->app->bound('view')) {
             $this->app->register(\Illuminate\View\ViewServiceProvider::class);
         }
