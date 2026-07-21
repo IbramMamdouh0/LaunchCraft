@@ -4,19 +4,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MobileWebsiteController;
 use App\Http\Controllers\WebsiteController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/ping', fn () => response()->json(['message' => 'pong']));
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-
     Route::get('/user', [AuthController::class, 'user']);
-    Route::get('/profile', fn (Request $request) => response()->json(['status' => 'success', 'data' => $request->user()]));
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/websites', [WebsiteController::class, 'index']);
     Route::post('/websites', [WebsiteController::class, 'store']);
@@ -32,11 +27,4 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/mobile/website', [MobileWebsiteController::class, 'show']);
-
-    Route::get('/media', fn () => response()->json(['status' => 'success', 'data' => []]));
-    Route::get('/themes', fn () => response()->json(['status' => 'success', 'data' => []]));
-
-    Route::prefix('builder')->group(function () {
-        Route::get('/{any?}', fn () => response()->json(['status' => 'success', 'message' => 'Builder endpoint active']));
-    });
 });
