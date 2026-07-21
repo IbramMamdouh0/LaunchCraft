@@ -33,6 +33,10 @@ try {
         }
     }
 
+    if (empty($_ENV['MONGODB_URI']) && getenv('MONGODB_URI')) {
+        $_ENV['MONGODB_URI'] = getenv('MONGODB_URI');
+    }
+
     $_ENV['APP_STORAGE'] = '/tmp/storage';
     $_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
     $_ENV['LOG_CHANNEL'] = $_ENV['LOG_CHANNEL'] ?? 'stderr';

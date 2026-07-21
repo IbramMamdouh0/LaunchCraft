@@ -25,10 +25,19 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn () => true);
 
-        $exceptions->render(function (MongoDB\Driver\Exception\ConnectionTimeoutException $e) {
-            return response()->json([
+        $exceptions->render(function (MongoDB\Driver\Exception\Exception $e) {
+            $payload = [
                 'status' => 'error',
                 'message' => 'Database connection failed. Please check server configuration.',
-            ], 500);
+            ];
+
+            if (config('app.debug')) {
+                $payload['exception'] = get_class($e);
+                $payload['error'] = $e->getMessage();
+                $payload['file'] = $e->getFile();
+                $payload['line'] = $e->getLine();
+            }
+
+            return response()->json($payload, 500);
         });
     })->create();
