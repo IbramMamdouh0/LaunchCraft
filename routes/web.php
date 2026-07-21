@@ -1,15 +1,18 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
-    return response()->json([
-        'status' => 'online',
-        'message' => 'LaunchCraft Backend API is running successfully',
-        'version' => '1.0.0'
-    ]);
+    return view('welcome');
 });
 
-Route::get('/ping', function () {
-    return response()->json(['status' => 'ok', 'message' => 'pong']);
+Route::get('/test-mongo', function () {
+    try {
+       
+        DB::connection('mongodb')->getMongoClient()->listDatabases();
+        return "Connected to MongoDB successfully!";
+    } catch (\Exception $e) {
+        return "MongoDB connection error: " . $e->getMessage();
+    }
 });

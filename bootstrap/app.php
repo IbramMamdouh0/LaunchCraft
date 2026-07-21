@@ -1,8 +1,10 @@
 <?php
 
+use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,32 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withProviders([
-        \Illuminate\View\ViewServiceProvider::class,
+        AppServiceProvider::class,
     ])
-    ->booted(function (Application $app) {
-        if (! $app->bound('view')) {
-            $app->register(\Illuminate\View\ViewServiceProvider::class);
-        }
-    })
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(fn () => true);
-
-        $exceptions->render(function (MongoDB\Driver\Exception\Exception $e) {
-            $payload = [
-                'status' => 'error',
-                'message' => 'Database connection failed. Please check server configuration.',
-            ];
-
-            if (config('app.debug')) {
-                $payload['exception'] = get_class($e);
-                $payload['error'] = $e->getMessage();
-                $payload['file'] = $e->getFile();
-                $payload['line'] = $e->getLine();
-            }
-
-            return response()->json($payload, 500);
-        });
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*'),
+        );
     })->create();
