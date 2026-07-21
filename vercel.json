@@ -1,11 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.php",
-      "use": "vercel-php"
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.0"
     }
-  ],
+  },
+  "env": {
+    "VERCEL_PHP_EXTENSIONS": "mongodb"
+  },
   "routes": [
     {
       "src": "/(.*)",
