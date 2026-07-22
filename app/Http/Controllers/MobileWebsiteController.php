@@ -14,18 +14,24 @@ class MobileWebsiteController extends Controller
             ->first();
 
         if (! $website) {
-            return response()->json(['message' => 'No published website found.'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No published website found.',
+            ], 404);
         }
 
         return response()->json([
-            'website' => [
-                'id' => $website->id,
-                'name' => $website->name,
-                'domain' => $website->domain,
-                'is_published' => true,
+            'status' => 'success',
+            'data' => [
+                'website' => [
+                    'id' => $website->id,
+                    'name' => $website->name,
+                    'domain' => $website->domain,
+                    'is_published' => true,
+                ],
+                'theme' => $website->theme,
+                'sections' => $website->sections,
             ],
-            'theme' => $website->theme,
-            'sections' => $website->sections,
         ]);
     }
 }

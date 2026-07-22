@@ -6,6 +6,11 @@ use App\Http\Controllers\MobileWebsiteController;
 use App\Http\Controllers\WebsiteController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/ping', fn () => response()->json([
+    'status' => 'success',
+    'message' => 'Pong! Server is active.',
+]));
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 

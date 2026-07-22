@@ -12,18 +12,27 @@ class MediaController extends Controller
     public function index(Request $request, Website $website)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
         $media = $website->media;
 
-        return response()->json($media);
+        return response()->json([
+            'status' => 'success',
+            'data' => $media,
+        ]);
     }
 
     public function store(Request $request, Website $website)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
         $validated = $request->validate([
@@ -43,23 +52,36 @@ class MediaController extends Controller
 
         $media->url = asset('storage/' . $path);
 
-        return response()->json($media, 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Media uploaded successfully.',
+            'data' => $media,
+        ], 201);
     }
 
     public function destroy(Request $request, Website $website, Media $medium)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
         if ($medium->website_id !== $website->id) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Not found.',
+            ], 404);
         }
 
         Storage::disk('public')->delete($medium->path);
 
         $medium->delete();
 
-        return response()->json(['message' => 'Media deleted successfully.']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Media deleted successfully.',
+        ]);
     }
 }

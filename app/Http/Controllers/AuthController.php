@@ -26,8 +26,12 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'status' => 'success',
+            'message' => 'User registered successfully.',
+            'data' => [
+                'user' => $user,
+                'token' => $token,
+            ],
         ], 201);
     }
 
@@ -49,8 +53,12 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'status' => 'success',
+            'message' => 'Logged in successfully.',
+            'data' => [
+                'user' => $user,
+                'token' => $token,
+            ],
         ]);
     }
 
@@ -58,11 +66,17 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged out successfully.',
+        ]);
     }
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json([
+            'status' => 'success',
+            'data' => $request->user(),
+        ]);
     }
 }

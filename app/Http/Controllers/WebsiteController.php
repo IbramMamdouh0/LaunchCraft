@@ -12,7 +12,10 @@ class WebsiteController extends Controller
     {
         $websites = $request->user()->websites;
 
-        return response()->json($websites);
+        return response()->json([
+            'status' => 'success',
+            'data' => $websites,
+        ]);
     }
 
     public function store(Request $request)
@@ -31,22 +34,35 @@ class WebsiteController extends Controller
 
         $website = Website::create($validated);
 
-        return response()->json($website, 201);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Website created successfully.',
+            'data' => $website,
+        ], 201);
     }
 
     public function show(Request $request, Website $website)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
-        return response()->json($website);
+        return response()->json([
+            'status' => 'success',
+            'data' => $website,
+        ]);
     }
 
     public function update(Request $request, Website $website)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
         $validated = $request->validate([
@@ -60,24 +76,37 @@ class WebsiteController extends Controller
 
         $website->update($validated);
 
-        return response()->json($website);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Website updated successfully.',
+            'data' => $website,
+        ]);
     }
 
     public function destroy(Request $request, Website $website)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
         $website->delete();
 
-        return response()->json(['message' => 'Website deleted successfully.']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Website deleted successfully.',
+        ]);
     }
 
     public function publish(Request $request, Website $website)
     {
         if ($website->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Forbidden.',
+            ], 403);
         }
 
         $validated = $request->validate([
@@ -99,15 +128,18 @@ class WebsiteController extends Controller
         ]);
 
         return response()->json([
+            'status' => 'success',
             'message' => 'Website published successfully.',
-            'website' => [
-                'id' => $website->id,
-                'name' => $website->name,
-                'domain' => $website->domain,
-                'is_published' => true,
+            'data' => [
+                'website' => [
+                    'id' => $website->id,
+                    'name' => $website->name,
+                    'domain' => $website->domain,
+                    'is_published' => true,
+                ],
+                'theme' => $website->theme,
+                'sections' => $website->sections,
             ],
-            'theme' => $website->theme,
-            'sections' => $website->sections,
         ]);
     }
 }
