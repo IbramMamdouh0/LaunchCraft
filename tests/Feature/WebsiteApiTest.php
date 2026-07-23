@@ -23,11 +23,15 @@ class WebsiteApiTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson([
-                'name' => 'My Business Site',
-                'business_type' => 'Restaurant',
-                'status' => 'draft',
+                'status' => 'success',
+                'message' => 'Website created successfully.',
+                'data' => [
+                    'name' => 'My Business Site',
+                    'business_type' => 'Restaurant',
+                    'status' => 'draft',
+                ],
             ])
-            ->assertJsonStructure(['id', 'slug', 'theme', 'pages']);
+            ->assertJsonStructure(['data' => ['id', 'slug', 'theme', 'pages']]);
 
         $this->assertTrue(
             Website::where('name', 'My Business Site')->where('user_id', $user->id)->exists()
@@ -45,7 +49,7 @@ class WebsiteApiTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/websites');
 
         $response->assertStatus(200)
-            ->assertJsonCount(3);
+            ->assertJsonCount(3, 'data');
     }
 
     public function test_user_can_see_single_website()
@@ -56,7 +60,7 @@ class WebsiteApiTest extends TestCase
         $response = $this->actingAs($user)->getJson("/api/websites/{$website->id}");
 
         $response->assertStatus(200)
-            ->assertJson(['name' => $website->name]);
+            ->assertJson(['status' => 'success', 'data' => ['name' => $website->name]]);
     }
 
     public function test_user_cannot_see_another_users_website()
@@ -83,7 +87,7 @@ class WebsiteApiTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJson(['name' => 'Updated Name']);
+            ->assertJson(['status' => 'success', 'message' => 'Website updated successfully.', 'data' => ['name' => 'Updated Name']]);
 
         $website->refresh();
         $this->assertEquals('Updated Name', $website->name);

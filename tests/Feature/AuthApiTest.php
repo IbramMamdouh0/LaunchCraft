@@ -28,7 +28,7 @@ class AuthApiTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonStructure(['user', 'token']);
+            ->assertJsonStructure(['status', 'message', 'data' => ['user', 'token']]);
 
         $this->assertTrue(User::where('email', 'john@example.com')->where('name', 'John Doe')->exists());
     }
@@ -54,6 +54,32 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
+    public function test_duplicate_registration_returns_422()
+    {
+        $this->postJson('/api/register', [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertStatus(201);
+
+        $response = $this->postJson('/api/register', [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => [
+                    'email' => ['The email has already been taken.'],
+                ],
+            ]);
+    }
+
     public function test_user_can_login()
     {
         $user = User::factory()->create([
@@ -66,7 +92,7 @@ class AuthApiTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['user', 'token']);
+            ->assertJsonStructure(['status', 'message', 'data' => ['user', 'token']]);
     }
 
     public function test_login_fails_with_wrong_credentials()
@@ -95,7 +121,7 @@ class AuthApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJson(['message' => 'Logged out successfully.']);
 
-        $this->assertCount(0, $user->tokens);
+        $this->assertCount(0, $user->tokens()->get());
     }
 
     public function test_unauthenticated_user_cannot_logout()
@@ -113,8 +139,11 @@ class AuthApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'name' => $user->name,
-                'email' => $user->email,
+                'status' => 'success',
+                'data' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
             ]);
     }
 }

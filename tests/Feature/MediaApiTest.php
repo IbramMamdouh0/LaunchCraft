@@ -28,13 +28,13 @@ class MediaApiTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-            ->assertJsonStructure(['id', 'filename', 'path', 'size', 'url']);
+            ->assertJsonStructure(['status', 'message', 'data' => ['id', 'filename', 'path', 'size', 'url']]);
 
-        Storage::disk('public')->assertExists($response->json('path'));
+        Storage::disk('public')->assertExists($response->json('data.path'));
 
         $this->assertTrue(
             Media::where('website_id', $website->id)
-                ->where('filename', $response->json('filename'))
+                ->where('filename', $response->json('data.filename'))
                 ->exists()
         );
     }
@@ -100,7 +100,7 @@ class MediaApiTest extends TestCase
         $response = $this->actingAs($user)->getJson("/api/websites/{$website->id}/media");
 
         $response->assertStatus(200)
-            ->assertJsonCount(3);
+            ->assertJsonCount(3, 'data');
     }
 
     public function test_user_cannot_list_media_for_another_users_website()

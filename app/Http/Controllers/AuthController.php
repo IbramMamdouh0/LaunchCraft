@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -17,11 +18,25 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        try {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+        } catch (Throwable $e) {
+            if ($e->getCode() === 11000) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validation failed',
+                    'errors' => [
+                        'email' => ['The email has already been taken.'],
+                    ],
+                ], 422);
+            }
+
+            throw $e;
+        }
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -49,6 +64,8 @@ class AuthController extends Controller
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        $user->tokens()->delete();
 
         $token = $user->createToken('auth-token')->plainTextToken;
 

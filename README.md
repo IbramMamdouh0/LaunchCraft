@@ -1,13 +1,15 @@
 # LaunchCraft
 
-Server-Driven UI backend for building and publishing websites. Built with Laravel 13 + MongoDB + Sanctum.
+Server-Driven UI backend for building and publishing multi-tenant websites. Built with **Laravel 13 + MongoDB + Sanctum**.
+
+Business types supported: `portfolio`, `restaurant` (extensible).
 
 ## Stack
 
 - **PHP 8.4** (CLI)
 - **Laravel 13**
-- **MongoDB 7** via `mongodb/laravel-mongodb` ^5.8
-- **Laravel Sanctum** ^4.3 (API token auth)
+- **MongoDB 7** via `mongodb/laravel-mongodb`
+- **Laravel Sanctum** (API token auth)
 - **Docker** (PHP + MongoDB containers)
 
 ## Quick Start
@@ -26,82 +28,113 @@ docker exec laravel_app php artisan key:generate
 docker exec laravel_app php artisan db:seed --class=MobileTestSeeder
 ```
 
-## API Endpoints
+Server runs at `http://localhost:8080`.
 
-All routes prefixed with `/api`.
+## Architecture
 
-### Auth
+### Tenant Isolation
+
+Every resource is scoped to a `website_id`. All mobile mutations verify that the website belongs to the authenticated user before allowing any CRUD operation. The website's `business_type` determines which modules the Flutter app renders:
+
+- **portfolio** → Projects
+- **restaurant** → Categories, Menu Items, Orders
+
+### Response Format
+
+All API responses follow a unified structure:
+
+```json
+{
+  "status": "success" | "error",
+  "message": "Human-readable message.",
+  "data": { ... }
+}
+```
+
+Validation errors include an additional `errors` object.
+
+## API Overview
+
+Full reference with request/response examples at [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md).
+
+| Section | Base Path | Auth |
+|---------|-----------|------|
+| Health | `/api/ping` | Public |
+| Auth | `/api/*` | Public / Bearer |
+| Web Builder | `/api/websites*` | Bearer |
+| Mobile | `/api/mobile/*` | Bearer |
+
+### Health & Auth
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/api/ping` | Server health check (public) |
 | POST | `/api/register` | Register new user |
 | POST | `/api/login` | Login, returns Bearer token |
-| POST | `/api/logout` | Revoke current token |
 | GET | `/api/user` | Get authenticated user |
+| POST | `/api/logout` | Revoke current token |
 
-### Websites (auth required)
+### Web Builder (Website Studio)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/websites` | List user's websites |
 | POST | `/api/websites` | Create website |
 | GET | `/api/websites/{id}` | Get website details |
-| PUT | `/api/websites/{id}` | Update website |
+| PUT | `/api/websites/{id}` | Update website metadata |
 | DELETE | `/api/websites/{id}` | Delete website |
-| PUT | `/api/websites/{id}/publish` | Publish website with theme & sections |
-
-### Mobile (auth required)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/mobile/website` | Get authenticated user's published website (Flutter-ready) |
-
-### Media (auth required)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
+| PUT | `/api/websites/{id}/publish` | Publish theme + sections |
 | GET | `/api/websites/{id}/media` | List media files |
-| POST | `/api/websites/{id}/media` | Upload file |
-| DELETE | `/api/websites/{id}/media/{mediaId}` | Delete media |
+| POST | `/api/websites/{id}/media` | Upload image (multipart) |
+| DELETE | `/api/websites/{id}/media/{mediaId}` | Delete media file |
 
-## Mobile Endpoint Response
+### Mobile App (Flutter)
 
-`GET /api/mobile/website` returns:
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/mobile/website` | Fetch published website layout |
 
-```json
-{
-  "website": {
-    "id": "...",
-    "name": "LaunchCraft Demo",
-    "domain": "demo.launchcraft.app",
-    "is_published": true
-  },
-  "theme": {
-    "primary_color": "#6366f1",
-    "secondary_color": "#ec4899",
-    "font_family": "Inter, sans-serif"
-  },
-  "sections": [
-    {
-      "type": "hero",
-      "sort_order": 0,
-      "data": { ... },
-      "style": { ... }
-    }
-  ]
-}
-```
+**Portfolio Module:**
 
-Designed for **Server-Driven UI** on Flutter — loop `sections` and render each by `type`.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/mobile/projects?website_id=` | List projects |
+| POST | `/api/mobile/projects` | Create project |
+| GET | `/api/mobile/projects/{id}` | Get project |
+| PUT | `/api/mobile/projects/{id}` | Update project |
+| DELETE | `/api/mobile/projects/{id}` | Delete project |
+
+**Restaurant Module:**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/mobile/categories?website_id=` | List categories (sorted) |
+| POST | `/api/mobile/categories` | Create category |
+| GET | `/api/mobile/categories/{id}` | Get category |
+| PUT | `/api/mobile/categories/{id}` | Update category |
+| DELETE | `/api/mobile/categories/{id}` | Delete category |
+| GET | `/api/mobile/menu-items?website_id=` | List menu items |
+| POST | `/api/mobile/menu-items` | Create menu item |
+| GET | `/api/mobile/menu-items/{id}` | Get menu item |
+| PUT | `/api/mobile/menu-items/{id}` | Update menu item |
+| DELETE | `/api/mobile/menu-items/{id}` | Delete menu item |
+| GET | `/api/mobile/orders?website_id=&status=` | List orders (filterable) |
+| GET | `/api/mobile/orders/{id}` | Get order details |
+| PATCH | `/api/mobile/orders/{id}/status` | Update order status |
 
 ## Models
 
-All models use `$connection = 'mongodb'` and extend MongoDB Eloquent classes:
+All models use `$connection = 'mongodb'` and extend `MongoDB\Laravel\Eloquent\Model`.
 
-- **User** — `hasMany(Website)`, `morphMany(PersonalAccessToken)`
-- **Website** — `belongsTo(User)`, `hasMany(Media)`, casts `theme`, `sections`, `pages` as arrays, `is_published` as boolean
-- **Media** — `belongsTo(Website)`
-- **PersonalAccessToken** — extends Sanctum's PAT with `DocumentModel` trait, `getKeyType()` returns `'string'` for MongoDB hex IDs
+| Model | Collection | Key Fields |
+|-------|------------|------------|
+| `User` | `users` | — |
+| `Website` | `websites` | `user_id`, `name`, `business_type`, `template`, `theme`, `sections`, `is_published`, `slug` |
+| `Media` | `media` | `website_id`, `filename`, `path`, `size` |
+| `Project` | `projects` | `website_id`, `title`, `description`, `images[]`, `project_url`, `category` |
+| `Category` | `categories` | `website_id`, `name`, `sort_order` |
+| `MenuItem` | `menu_items` | `website_id`, `category_id`, `title`, `description`, `price`, `image`, `is_available` |
+| `Order` | `orders` | `website_id`, `customer_name`, `customer_phone`, `items[]`, `total_price`, `status` |
 
 ## Testing
 
@@ -109,7 +142,7 @@ All models use `$connection = 'mongodb'` and extend MongoDB Eloquent classes:
 docker exec laravel_app php artisan test
 ```
 
-Tests use SQLite in-memory for the default connection; MongoDB models bypass it via `$connection = 'mongodb'`. 35 tests cover auth, website CRUD, publish, mobile endpoint, and media.
+Tests use SQLite in-memory for the default connection; MongoDB models bypass it via `$connection = 'mongodb'`.
 
 ## CI/CD
 

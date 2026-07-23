@@ -41,29 +41,35 @@ class MobileApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'website' => [
-                    'id',
-                    'name',
-                    'domain',
-                    'is_published',
+                'status',
+                'data' => [
+                    'website' => [
+                        'id',
+                        'name',
+                        'domain',
+                        'is_published',
+                    ],
+                    'theme',
+                    'sections',
                 ],
-                'theme',
-                'sections',
             ])
             ->assertJson([
-                'website' => [
-                    'name' => 'My Restaurant',
-                    'domain' => 'my-restaurant.example.com',
-                    'is_published' => true,
-                ],
-                'theme' => [
-                    'primary_color' => '#1a1a2e',
-                    'secondary_color' => '#e94560',
-                ],
-                'sections' => [
-                    ['type' => 'hero', 'sort_order' => 0, 'data' => ['headline' => 'Welcome'], 'style' => []],
-                    ['type' => 'features', 'sort_order' => 1, 'data' => ['title' => 'Features'], 'style' => []],
-                    ['type' => 'footer', 'sort_order' => 2, 'data' => ['copyright' => '2026'], 'style' => []],
+                'status' => 'success',
+                'data' => [
+                    'website' => [
+                        'name' => 'My Restaurant',
+                        'domain' => 'my-restaurant.example.com',
+                        'is_published' => true,
+                    ],
+                    'theme' => [
+                        'primary_color' => '#1a1a2e',
+                        'secondary_color' => '#e94560',
+                    ],
+                    'sections' => [
+                        ['type' => 'hero', 'sort_order' => 0, 'data' => ['headline' => 'Welcome'], 'style' => []],
+                        ['type' => 'features', 'sort_order' => 1, 'data' => ['title' => 'Features'], 'style' => []],
+                        ['type' => 'footer', 'sort_order' => 2, 'data' => ['copyright' => '2026'], 'style' => []],
+                    ],
                 ],
             ]);
     }
@@ -104,7 +110,7 @@ class MobileApiTest extends TestCase
         $response = $this->getJson('/api/mobile/website');
 
         $response->assertStatus(200);
-        $response->assertJsonPath('website.name', 'Published Site');
+        $response->assertJsonPath('data.website.name', 'Published Site');
     }
 
     public function test_returns_404_when_no_websites_exist_at_all()
@@ -147,6 +153,6 @@ class MobileApiTest extends TestCase
         $response = $this->getJson('/api/mobile/website');
 
         $response->assertStatus(200);
-        $response->assertJsonPath('website.name', 'My Site');
+        $response->assertJsonPath('data.website.name', 'My Site');
     }
 }
